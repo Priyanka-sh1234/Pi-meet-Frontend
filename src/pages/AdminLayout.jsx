@@ -1,11 +1,11 @@
 // components/AdminLayout.js
 import React, { useState } from 'react';
 import {
-  DesktopOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-  LogoutOutlined,
+    DesktopOutlined,
+    PieChartOutlined,
+    TeamOutlined,
+    UserOutlined,
+    LogoutOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu, Button } from 'antd';
 import { Outlet, useNavigate } from 'react-router-dom';
@@ -14,71 +14,90 @@ import { useAuth } from '../components/protectRoutes/AuthContext';
 const { Header, Content, Sider } = Layout;
 
 const AdminLayout = () => {
-  const [collapsed, setCollapsed] = useState(false);
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+    const [collapsed, setCollapsed] = useState(false);
+    const navigate = useNavigate();
+    const { logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
-  const handleMenuClick = ({ key }) => {
-    navigate(key);
-  };
+    const handleMenuClick = ({ key }) => {
+        navigate(key);
+    };
 
-  const menuItems = [
-    { key: '/AdminDashboard', icon: <PieChartOutlined />, label: 'Dashboard' },
-    { key: '/all-classes', icon: <DesktopOutlined />, label: 'All Classes' },
-    {
-      key: 'sub1',
-      icon: <TeamOutlined />,
-      label: 'Trainers',
-      children: [
-        { key: '/add-trainer', label: 'Add a trainer' },
-        { key: '/update-trainer', label: 'Update Credentials' },
-      ],
-    },
-    { key: '/add-guest', icon: <UserOutlined />, label: 'Add a guest' },
-  ];
+    const menuItems = [
+        { key: '/AdminDashboard', icon: <PieChartOutlined />, label: 'Dashboard' },
+        { key: '/all-classes', icon: <DesktopOutlined />, label: 'All Classes' },
+        {
+            key: 'sub1',
+            icon: <TeamOutlined />,
+            label: 'Trainers',
+            children: [
+                { key: '/add-trainer', label: 'Add a trainer' },
+                { key: '/update-trainer', label: 'Update Credentials' },
+            ],
+        },
+        { key: '/add-guest', icon: <UserOutlined />, label: 'Add a guest' },
+    ];
 
-  return (
-    <Layout className="min-h-screen">
-      {/* Sidebar */}
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
-        <Menu
-          theme="dark"
-          mode="inline"
-          defaultSelectedKeys={['/AdminDashboard']}
-          items={menuItems}
-          onClick={handleMenuClick}
-        />
-      </Sider>
+    return (
+        <Layout className="min-h-screen">
+            {/* Sidebar */}
+            <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+                {/* Logo Image */}
+                <div className="h-20 flex items-center justify-center bg-white mb-4 transition-all duration-300">
+                    {collapsed ? (
+                        <img
+                            src=" https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHeUX5G5ZPphWOo1-G_dz8Dhi9MobK8aJYUw&s"
+                            alt="Logo Collapsed"
+                            className="w-10"
+                        />
+                    ) : (
+                        <img
+                            src="https://www.pisoftinformatics.com/pisoft/images/latestLogoP.png"
+                            alt="Logo Full"
+                            className="w-32"
+                        />
+                    )}
+                </div>
 
-      {/* Main Layout */}
-      <Layout>
-        {/* Header with Logout */}
-        <Header className="bg-white px-6 flex justify-end items-center shadow-sm">
-          <Button
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white border-none px-4 py-1 rounded-md shadow-sm"
-          >
-            Logout
-          </Button>
-        </Header>
+                {/* Menu Items */}
+                <Menu
+                    theme="dark"
+                    mode="inline"
+                    defaultSelectedKeys={['/AdminDashboard']}
+                    items={menuItems}
+                    onClick={handleMenuClick}
+                />
+            </Sider>
 
-        {/* Main Content Area Styled */}
-        <Content className="m-4">
-          <div className="bg-gradient-to-br from-orange-100 to-blue-100 p-8 rounded-xl shadow-md min-h-[80vh]">
-            <div className="bg-white rounded-lg shadow p-6">
-              <Outlet />
-            </div>
-          </div>
-        </Content>
-      </Layout>
-    </Layout>
-  );
+
+            {/* Main Layout */}
+            <Layout>
+                {/* Header with Logout */}
+                <Header className="bg-white px-6 flex justify-end items-center shadow-sm">
+                    <Button
+                        icon={<LogoutOutlined />}
+                        onClick={handleLogout}
+                        className="bg-red-500 hover:bg-red-600 text-white border-none px-4 py-1 rounded-md shadow-sm"
+                    >
+                        Logout
+                    </Button>
+                </Header>
+
+                {/* Main Content Area Styled */}
+                <Content className="m-4">
+                    <div className="bg-gradient-to-br from-orange-100 to-blue-100 p-8 rounded-xl shadow-md min-h-[80vh]">
+                        <div className="bg-white rounded-lg shadow p-6">
+                            <Outlet />
+                        </div>
+                    </div>
+                </Content>
+            </Layout>
+        </Layout>
+    );
 };
 
 export default AdminLayout;
