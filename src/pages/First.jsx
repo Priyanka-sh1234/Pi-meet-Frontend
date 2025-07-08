@@ -9,7 +9,7 @@ const First = () => {
   };
 
   return (
-    <div className="flex items-center justify-center bg-gray-800 min-h-screen  p-6">
+    <div className="flex items-center justify-center bg-white min-h-screen  p-6">
       <div className="relative backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-2xl text-center border border-white/50 overflow-hidden">
 
         {/* Decorative Blobs (More visible) */}
@@ -17,14 +17,14 @@ const First = () => {
         <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-orange-500 opacity-30 rounded-full blur-[100px] z-0"></div>
 
         <div className="relative z-10">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-6 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 mb-6 tracking-tight">
             Welcome to the Admin Panel
           </h1>
 
-          <p className="text-lg text-white mb-2">
+          <p className="text-lg text-gray-800 mb-2">
             This is your central hub for managing settings, users, and much more.
           </p>
-          <p className="text-md text-white mb-8">
+          <p className="text-md text-gray-800 mb-8">
             Click the button below to access the admin dashboard.
           </p>
 

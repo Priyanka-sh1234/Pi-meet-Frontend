@@ -27,19 +27,19 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-800 p-6">
-      <div className="relative backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-xl border border-white/50 overflow-hidden">
+    <div className="flex items-center justify-center min-h-screen bg-white/40 p-6">
+      <div className="relative backdrop-blur-2xl rounded-3xl shadow-orange-300 shadow-2xl p-10 w-full max-w-xl border border-black/30 overflow-hidden">
 
         {/* Decorative Blobs */}
-        <div className="absolute -top-24 -left-24 w-72 h-72 bg-orange-400 opacity-30 rounded-full blur-[100px] z-0"></div>
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-orange-400 opacity-30 rounded-full blur-[100px] z-0"></div>
+        <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-[100px] z-0"></div>
+        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-[100px] z-0"></div>
 
         <div className="relative z-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-6">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 text-center mb-6">
             Admin Panel Login
           </h1>
 
-          <p className="text-center text-white mb-6">
+          <p className="text-center text-gray-800 mb-6">
             Please enter your admin credentials to proceed.
           </p>
 
@@ -52,7 +52,7 @@ export default function AdminLogin() {
             autoComplete="off"
           >
             <Form.Item
-              label={<span className="text-white font-semibold">Username</span>}
+              label={<span className="text-gray-800 font-semibold">Username</span>}
               name="admin"
               rules={[{ required: true, message: 'Please input your username!' }]}
             >
@@ -63,7 +63,7 @@ export default function AdminLogin() {
             </Form.Item>
 
             <Form.Item
-              label={<span className="text-white font-semibold">Password</span>}
+              label={<span className="text-gray-800 font-semibold">Password</span>}
               name="password"
               rules={[{ required: true, message: 'Please input your password!' }]}
             >
