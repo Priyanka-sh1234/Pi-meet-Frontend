@@ -9,13 +9,21 @@ import {
 } from '@ant-design/icons';
 import { Layout, Menu, Button } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './protectRoutes/AuthContext';
+import { useAuth } from '../components/protectRoutes/AuthContext';
+
+import TrainerDashboard from '../components/Trainer/TrainerDashboard';
+import AdminDashboard from '../components/Admin/AdminDashboard';
 
 const { Header, Content, Footer, Sider } = Layout;
 
 const Dashboard = () => {
+   const [role, setRole] = useState("trainer"); 
   return (
-    <div>Dashboard</div>
+        <>
+        {role === "admin" && <AdminDashboard />}
+      {role === "trainer" && <TrainerDashboard />}
+
+    </>
   );
 };
 

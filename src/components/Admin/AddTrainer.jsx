@@ -1,9 +1,12 @@
 import React from 'react'
+import Trainerlist from '../Trainerlist'
 
 export default function AddTrainer() {
   return (
+       <>
     <div>
-      Add a trainer
+      <Trainerlist/>
     </div>
+    </>
   )
 }
