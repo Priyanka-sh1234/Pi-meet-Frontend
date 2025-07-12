@@ -1,95 +1,115 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/protectRoutes/AuthContext';
+import { useSetAtom } from 'jotai';
+import { roleAtom, secretKeyAtom } from '../store/atoms';
+import { loginUser } from '../api/auth';
+import { message } from 'antd';
+import image from '../assets/images.png'; // your background image
+import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import { cn } from '../components/lib/utils';
+import { BackgroundLines } from '../components/ui/BackgroundLines';
 
 export default function AdminLogin() {
+  const [admin, setAdmin] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
 
-  const onFinish = ({ admin, password }) => {
+  const setRole = useSetAtom(roleAtom);
+  const setSecret = useSetAtom(secretKeyAtom);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
 
-    setTimeout(() => {
-      if (admin === 'admin' && password === '123') {
-        login();
-        navigate("/AdminDashboard");
-      } else {
-        message.error('Invalid username or password.');
-      }
-      setLoading(false);
-    }, 1000);
-  };
+    try {
+      const data = await loginUser(admin, password);
+      console.log("Login success:", data);
+    navigate("/AdminDashboard")
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
+      setSecret(data.token);
+      setRole(data.user.role);
+
+      localStorage.setItem('secretKey', data.token);
+      localStorage.setItem('role', data.user.role);
+
+      message.success(data.message || 'Login successful!');
+      // navigate(`/${data.user.role.charAt(0).toUpperCase() + data.user.role.slice(1)}Dashboard`);
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Invalid credentials.";
+      message.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white/40 p-6">
-      <div className="relative backdrop-blur-2xl rounded-3xl shadow-orange-300 shadow-2xl p-10 w-full max-w-xl border border-black/30 overflow-hidden">
-
-        {/* Decorative Blobs */}
-        <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-[100px] z-0"></div>
-        <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-400 opacity-30 rounded-full blur-[100px] z-0"></div>
-
-        <div className="relative z-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-800 text-center mb-6">
-            Admin Panel Login
-          </h1>
-
-          <p className="text-center text-gray-800 mb-6">
-            Please enter your admin credentials to proceed.
+    <BackgroundLines className="relative flex items-center justify-center w-full h-screen overflow-hidden">
+      <img
+        src={image}
+        alt="PiSoft Logo Background"
+        className="absolute w-124 h-auto opacity-100 z-0"
+        style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
+      />
+      <div className="z-10 shadow-input mx-auto w-126 max-w-md rounded-none p-4 md:rounded-2xl md:p-8 backdrop-blur-sm bg-white/10 dark:bg-gray-100 flex items-center justify-center border border-white/20 flex-col">
+        <div className="w-full">
+          <h2 className="text-xl font-bold text-center text-blue-200">Welcome to Pi-Meet</h2>
+          <p className="mt-2 max-w-sm text-sm text-center text-neutral-300">
+            Login to Pi-Meet to learn from experts
           </p>
 
-          <Form
-            layout="vertical"
-            name="admin-login"
-            initialValues={{ remember: true }}
-            onFinish={onFinish}
-            onFinishFailed={onFinishFailed}
-            autoComplete="off"
-          >
-            <Form.Item
-              label={<span className="text-gray-800 font-semibold">Username</span>}
-              name="admin"
-              rules={[{ required: true, message: 'Please input your username!' }]}
-            >
+          <form className="my-8" onSubmit={handleSubmit}>
+            <LabelInputContainer className="mb-4">
+              <Label htmlFor="admin" className="text-neutral-200">Username</Label>
               <Input
-                className="py-2 rounded-lg shadow-sm focus:border-blue-500 focus:shadow-md"
+                id="id"
                 placeholder="Enter username"
+                type="text"
+                value={admin}
+                onChange={(e) => setAdmin(e.target.value)}
               />
-            </Form.Item>
+            </LabelInputContainer>
 
-            <Form.Item
-              label={<span className="text-gray-800 font-semibold">Password</span>}
-              name="password"
-              rules={[{ required: true, message: 'Please input your password!' }]}
+            <LabelInputContainer className="mb-4">
+              <Label htmlFor="password" className="text-neutral-200">Password</Label>
+              <Input
+                id="password"
+                placeholder="••••••••"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </LabelInputContainer>
+
+            <button
+              disabled={loading}
+              type="submit"
+              className={cn(
+                "group/btn relative block mt-8 h-10 w-full rounded-md font-medium text-white",
+                "bg-gradient-to-br from-orange-500 to-blue-600",
+                loading && "opacity-50 cursor-not-allowed"
+              )}
             >
-              <Input.Password
-                className="py-2 rounded-lg shadow-sm focus:border-blue-500 focus:shadow-md"
-                placeholder="Enter password"
-              />
-            </Form.Item>
-
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                className="!bg-gradient-to-r !from-blue-500 !to-indigo-600 hover:!from-blue-600 hover:!to-indigo-700 
-               !text-white !font-semibold !py-4 !rounded-xl !shadow-md !w-full 
-               transition-all duration-200 ease-in-out transform hover:scale-[1.02]"
-              >
-                Login
-              </Button>
-            </Form.Item>
-
-          </Form>
+              {loading ? "Signing in..." : "Sign in →"}
+              <BottomGradient />
+            </button>
+          </form>
         </div>
       </div>
-    </div>
+    </BackgroundLines>
   );
 }
+
+const LabelInputContainer = ({ children, className }) => (
+  <div className={cn("flex w-full flex-col space-y-2", className)}>
+    {children}
+  </div>
+);
+
+const BottomGradient = () => (
+  <>
+    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+  </>
+);
