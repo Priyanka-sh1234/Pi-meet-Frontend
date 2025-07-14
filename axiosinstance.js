@@ -4,7 +4,7 @@ const getSecretKey = () => localStorage.getItem('secretKey');
 const getRole = () => localStorage.getItem('role');
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'http://localhost:5050/api',
   headers: {
     'Content-Type': 'application/json',
   },

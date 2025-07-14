@@ -29,7 +29,7 @@ export default function App() {
         <Route path="AdminDashboard" element={<Dashboard />} />
         <Route path="all-classes" element={<AllClasses />} />
         <Route path="add-trainer" element={<AddTrainer />} />
-        
+       
         <Route path="Trainer-dashboard" element={<TrainerDashboard />} />
       </Route>
        <Route path="Trainer/reset" element={<ResetPassword/>} />

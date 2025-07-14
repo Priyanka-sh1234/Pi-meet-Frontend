@@ -10,7 +10,7 @@ const Batches = () => {
 
   return (
     <div className="mt-10">
-      <h1 className="text-lg font-bold text-neutral-600 dark:text-white mb-2">
+      <h1 className="text-lg font-bold text-neutral-600  mb-2">
         Current Schedule Batches
       </h1>
 

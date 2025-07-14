@@ -180,7 +180,7 @@ const AllClasses = () => {
         closeIcon={<span className="text-white hover:text-red-400">✖</span>}
         bodyStyle={{
           padding: 24,
-          backgroundColor: "#E5E5E5",
+          backgroundColor: "#111827",
           backdropFilter: "blur(10px)",
         }}
       >
@@ -243,7 +243,7 @@ const AllClasses = () => {
 
               <button
                 type="button"
-                className="mt-3 w-full bg-gray-950 hover:bg-gray-900 text-white font-medium py-2 rounded-md transition"
+                className="mt-3 w-full bg-gray-950 hover:bg-gray-700 text-white font-medium py-2 rounded-md transition"
                 onClick={() => {
                   if (
                     editData.newGuestEmail &&
@@ -281,7 +281,7 @@ const AllClasses = () => {
                         initial={{ opacity: 0, x: 40 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 100 }}
-                        className="flex justify-between items-center bg-gray-900 px-3 py-2 rounded-md shadow-md backdrop-blur-md"
+                        className="flex justify-between items-center bg-gray-950 px-3 py-2 rounded-md shadow-md backdrop-blur-md"
                       >
                         <div>
                           <p className="text-sm font-medium text-blue-200">{g.email}</p>
