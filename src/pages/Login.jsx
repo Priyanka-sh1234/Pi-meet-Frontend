@@ -4,7 +4,7 @@ import { useSetAtom } from 'jotai';
 import { roleAtom, secretKeyAtom } from '../store/atoms';
 import { loginUser } from '../api/auth';
 import { message } from 'antd';
-import image from '../assets/images.png'; // your background image
+import image from '../assets/images.png';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { cn } from '../components/lib/utils';
@@ -26,7 +26,7 @@ export default function AdminLogin() {
     try {
       const data = await loginUser(admin, password);
       console.log("Login success:", data);
-    navigate("/AdminDashboard")
+      navigate("/AdminDashboard");
 
       setSecret(data.token);
       setRole(data.user.role);
@@ -35,7 +35,6 @@ export default function AdminLogin() {
       localStorage.setItem('role', data.user.role);
 
       message.success(data.message || 'Login successful!');
-      // navigate(`/${data.user.role.charAt(0).toUpperCase() + data.user.role.slice(1)}Dashboard`);
     } catch (err) {
       const msg = err?.response?.data?.message || "Invalid credentials.";
       message.error(msg);
@@ -52,18 +51,19 @@ export default function AdminLogin() {
         className="absolute w-124 h-auto opacity-100 z-0"
         style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
       />
-      <div className="z-10 shadow-input mx-auto w-126 max-w-md rounded-none p-4 md:rounded-2xl md:p-8 backdrop-blur-sm bg-white/10 dark:bg-gray-100 flex items-center justify-center border border-white/20 flex-col">
+
+      <div className="z-10 shadow-input mx-auto w-126 max-w-md rounded-none p-4 md:rounded-2xl md:p-8 backdrop-blur-sm bg-white/10 dark:bg-white/5 border border-white/20 dark:border-gray-700 flex items-center justify-center flex-col">
         <div className="w-full">
-          <h2 className="text-xl font-bold text-center text-blue-200">Welcome to Pi-Meet</h2>
-          <p className="mt-2 max-w-sm text-sm text-center text-neutral-300">
+          <h2 className="text-xl font-bold text-center text-blue-200 dark:text-blue-400">Welcome to Pi-Meet</h2>
+          <p className="mt-2 max-w-sm text-sm text-center text-neutral-300 dark:text-neutral-400">
             Login to Pi-Meet to learn from experts
           </p>
 
           <form className="my-8" onSubmit={handleSubmit}>
             <LabelInputContainer className="mb-4">
-              <Label htmlFor="admin" className="text-neutral-200">Username</Label>
+              <Label htmlFor="admin" className="text-neutral-200 dark:text-neutral-300">Username</Label>
               <Input
-                id="id"
+                id="admin"
                 placeholder="Enter username"
                 type="text"
                 value={admin}
@@ -72,7 +72,7 @@ export default function AdminLogin() {
             </LabelInputContainer>
 
             <LabelInputContainer className="mb-4">
-              <Label htmlFor="password" className="text-neutral-200">Password</Label>
+              <Label htmlFor="password" className="text-neutral-200 dark:text-neutral-300">Password</Label>
               <Input
                 id="password"
                 placeholder="••••••••"
@@ -109,7 +109,7 @@ const LabelInputContainer = ({ children, className }) => (
 
 const BottomGradient = () => (
   <>
-    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+    <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100 dark:via-cyan-300" />
+    <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100 dark:via-indigo-300" />
   </>
 );
