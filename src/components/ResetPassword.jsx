@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import image from "../assets/images.png";
+import { resetTrainerPassword } from "../api/trainerApi"; // ✅ Import API
 
 const ResetPassword = () => {
   const [trainerId, setTrainerId] = useState("");
@@ -26,27 +27,14 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5050/api/trainer/reset-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ trainerId: trainerId.trim(), newPassword })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Password reset successful!");
-        setTrainerId("");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        alert(data.message || "Password reset failed!");
-      }
+      const result = await resetTrainerPassword(trainerId, newPassword); // ✅ Axios call
+      alert("Password reset successful!");
+      setTrainerId("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (error) {
       console.error("Reset password error:", error);
-      alert("Something went wrong!");
+      alert(error.response?.data?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }

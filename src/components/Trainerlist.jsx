@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Tag, Space, Button, Modal, message, Drawer, Select } from 'antd';
-import { EditOutlined, DeleteOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { addTrainer, getAllTrainers, deleteTrainer, updateTrainer } from '../api/trainerApi';
+import {
+  Table, Tag, Space, Button, Modal, message, Drawer, Select
+} from 'antd';
+import {
+  EditOutlined, DeleteOutlined, CheckCircleOutlined, CloseCircleOutlined
+} from '@ant-design/icons';
+import {
+  addTrainer, getAllTrainers, deleteTrainer, updateTrainer
+} from '../api/trainerApi';
 import { Label } from './ui/label';
 import { Input as CustomInput } from './ui/input';
 import { cn } from './lib/utils';
 
-const batchOptions = ['Batch 9-11', 'Batch 11-1', 'Batch 2-4', 'Batch 4-6', 'Batch offline'];
+const batchOptions = [
+  'Batch 9-11', 'Batch 11-1', 'Batch 2-4', 'Batch 4-6', 'Batch offline'
+];
 
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>
+    {children}
+  </div>
 );
 
 const BottomGradient = () => (
@@ -73,13 +83,13 @@ const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }
     </LabelInputContainer>
 
     <LabelInputContainer className="md:col-span-2">
-      <Label htmlFor="batches">Batches</Label>
+      <Label htmlFor="batch">Batches</Label>
       <Select
         mode="multiple"
         allowClear
         placeholder="Select batches"
-        id="batches"
-        value={formData.batches}
+        id="batch"
+        value={formData.batch}
         onChange={handleBatchChange}
         className="w-full"
         options={batchOptions.map(batch => ({ label: batch, value: batch }))}
@@ -101,7 +111,7 @@ const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }
 const TrainerList = () => {
   const [trainers, setTrainers] = useState([]);
   const [formData, setFormData] = useState({
-    name: '', email: '', TrainerId: '', technology: '', mobile: '', role: 'Trainer', batches: [],
+    name: '', email: '', TrainerId: '', technology: '', mobile: '', role: 'Trainer', batch: [],
   });
 
   const [search, setSearch] = useState('');
@@ -118,10 +128,8 @@ const TrainerList = () => {
 
       const normalized = all.map(t => ({
         ...t,
-        TrainerId: t.TrainerId,
         status: t.PassChangeStatus?.toLowerCase() === 'inactive' ? 'Inactive' : 'Active',
-        role: t.role || 'Trainer',
-        batches: t.batches || [],
+        batch: t.batch || [],
       }));
 
       setTrainers(normalized);
@@ -141,7 +149,7 @@ const TrainerList = () => {
   };
 
   const handleBatchChange = (value) => {
-    setFormData(prev => ({ ...prev, batches: value }));
+    setFormData(prev => ({ ...prev, batch: value }));
   };
 
   const handleAddSubmit = async (e) => {
@@ -164,7 +172,7 @@ const TrainerList = () => {
       technology: record.technology || '',
       mobile: record.mobile || '',
       role: record.role || 'Trainer',
-      batches: record.batches || [],
+      batch: record.batch || [],
     });
     setSelectedTrainer(record);
     setEditDrawerOpen(true);
@@ -205,9 +213,9 @@ const TrainerList = () => {
     { title: 'Technology', dataIndex: 'technology', key: 'technology' },
     {
       title: 'Batches',
-      dataIndex: 'batches',
-      key: 'batches',
-      render: (batches) => (batches?.length > 0 ? batches.join(', ') : '—'),
+      dataIndex: 'batch',
+      key: 'batch',
+      render: (b) => b?.length > 0 ? b.join(', ') : '—'
     },
     {
       title: 'Status', dataIndex: 'status', key: 'status', render: (status) => (
@@ -259,7 +267,12 @@ const TrainerList = () => {
       <Table columns={columns} dataSource={filteredData} rowKey="_id" pagination={{ pageSize: 5 }} />
 
       <Modal title="Add Trainer" open={addModalOpen} onCancel={() => setAddModalOpen(false)} footer={null} width={650}>
-        <TrainerForm {...{ formData, handleChange, handleBatchChange, handleSubmit: handleAddSubmit }} />
+        <TrainerForm
+          formData={formData}
+          handleChange={handleChange}
+          handleBatchChange={handleBatchChange}
+          handleSubmit={handleAddSubmit}
+        />
       </Modal>
 
       <Drawer
@@ -268,7 +281,12 @@ const TrainerList = () => {
         onClose={() => setEditDrawerOpen(false)}
         width={650}
       >
-        <TrainerForm {...{ formData, handleChange, handleBatchChange, handleSubmit: handleUpdateSubmit }} />
+        <TrainerForm
+          formData={formData}
+          handleChange={handleChange}
+          handleBatchChange={handleBatchChange}
+          handleSubmit={handleUpdateSubmit}
+        />
       </Drawer>
 
       <Modal

@@ -17,7 +17,7 @@ import AdminDashboard from '../components/Admin/AdminDashboard';
 const { Header, Content, Footer, Sider } = Layout;
 
 const Dashboard = () => {
-   const [role, setRole] = useState("admin"); 
+   const [role, setRole] = useState("trainer"); 
   return (
         <>
         {role === "admin" && <AdminDashboard />}

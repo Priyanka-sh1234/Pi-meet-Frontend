@@ -21,3 +21,12 @@ export const updateTrainer = async (trainerId, updatedData) => {
   return response.data;
 };
 
+export const resetTrainerPassword = async (trainerId, newPassword) => {
+  const response = await axiosInstance.post('/trainer/reset-password', {
+    trainerId: trainerId.trim(),
+    newPassword,
+  });
+  return response.data;
+};
+
+
