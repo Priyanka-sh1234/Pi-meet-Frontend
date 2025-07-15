@@ -1,4 +1,10 @@
 import { atom } from 'jotai';
 
-export const secretKeyAtom = atom(localStorage.getItem('secretKey') || null);
-export const roleAtom = atom(localStorage.getItem('role') || null);
+// Store token
+export const secretKeyAtom = atom('');
+
+// Store role
+export const roleAtom = atom('');
+
+// Store full user data (id, name, email, etc.)
+export const userAtom = atom(null);

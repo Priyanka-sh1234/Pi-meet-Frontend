@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSetAtom } from 'jotai';
-import { roleAtom, secretKeyAtom } from '../store/atoms';
+import { roleAtom, secretKeyAtom, userAtom } from '../store/atoms';
 import { loginUser } from '../api/auth';
 import { message } from 'antd';
 import image from '../assets/images.png';
@@ -11,30 +11,40 @@ import { cn } from '../components/lib/utils';
 import { BackgroundLines } from '../components/ui/BackgroundLines';
 
 export default function AdminLogin() {
-  const [admin, setAdmin] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const setRole = useSetAtom(roleAtom);
   const setSecret = useSetAtom(secretKeyAtom);
+  const setUser = useSetAtom(userAtom);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!id || !password) {
+      message.warning("Please enter both username and password.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await loginUser(admin, password);
+      const data = await loginUser(id, password);
       console.log("Login success:", data);
-      navigate("/AdminDashboard");
 
+      // Store in Jotai atoms
       setSecret(data.token);
       setRole(data.user.role);
+      setUser(data.user);
 
+      // Store in localStorage (optional)
       localStorage.setItem('secretKey', data.token);
       localStorage.setItem('role', data.user.role);
 
       message.success(data.message || 'Login successful!');
+      navigate("/AdminDashboard");
     } catch (err) {
       const msg = err?.response?.data?.message || "Invalid credentials.";
       message.error(msg);
@@ -61,13 +71,14 @@ export default function AdminLogin() {
 
           <form className="my-8" onSubmit={handleSubmit}>
             <LabelInputContainer className="mb-4">
-              <Label htmlFor="admin" className="text-neutral-200 dark:text-neutral-300">Username</Label>
+              <Label htmlFor="id" className="text-neutral-200 dark:text-neutral-300">Username</Label>
               <Input
-                id="admin"
+                id="id"
                 placeholder="Enter username"
                 type="text"
-                value={admin}
-                onChange={(e) => setAdmin(e.target.value)}
+                autoComplete="username"
+                value={id}
+                onChange={(e) => setId(e.target.value)}
               />
             </LabelInputContainer>
 
@@ -77,6 +88,7 @@ export default function AdminLogin() {
                 id="password"
                 placeholder="••••••••"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
