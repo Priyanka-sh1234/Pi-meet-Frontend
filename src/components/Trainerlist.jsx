@@ -272,7 +272,7 @@ const TrainerList = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-black text-black dark:text-white rounded-lg p-4">
+    <div className="bg-white  text-black  rounded-lg p-4">
       <div className="flex justify-between mb-4 flex-wrap gap-3">
         <div className="flex gap-2">
           <button onClick={() => setView("active")} className={`px-4 py-2 rounded ${view === "active" ? "bg-gray-900 text-white" : "border"}`}>Active</button>

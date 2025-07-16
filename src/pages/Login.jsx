@@ -65,7 +65,7 @@ export default function AdminLogin() {
         style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
       />
 
-      <div className="z-10 shadow-input mx-auto w-126 max-w-md rounded-none p-4 md:rounded-2xl md:p-8 backdrop-blur-sm bg-white/10 dark:bg-white/5 border border-white/20 dark:border-gray-700 flex items-center justify-center flex-col">
+      <div className="z-10 shadow-input mx-auto w-126 max-w-md rounded-none p-4 md:rounded-2xl md:p-8 backdrop-blur-sm bg-white/10  border border-white/20 dark:border-gray-700 flex items-center justify-center flex-col">
         <div className="w-full">
           <h2 className="text-xl font-bold text-center text-blue-200 dark:text-blue-400">Welcome to Pi-Meet</h2>
           <p className="mt-2 max-w-sm text-sm text-center text-neutral-300 dark:text-neutral-400">

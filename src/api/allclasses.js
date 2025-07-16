@@ -18,3 +18,10 @@ export const deleteClassByMeetingLink = async (meetingLink) => {
   });
   return response.data;
 };
+
+// POST: Add Guest
+export const addGuestToClass = async (guestData) => {
+  const response = await axiosInstance.post("/trainer/AddGuest", guestData);
+  return response.data;
+};
+

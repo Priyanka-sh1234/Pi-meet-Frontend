@@ -11,6 +11,7 @@ import {
   getAllClasses,
   deleteClassByMeetingLink,
   getTrainerClasses,
+  addGuestToClass,
 } from "../../api/allclasses";
 import { useAtomValue } from "jotai";
 import { userAtom } from "../../store/atoms";
@@ -31,6 +32,11 @@ const AllClasses = () => {
   const [scheduleData, setScheduleData] = useState({});
   const [batchList, setBatchList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newGuestEmail, setNewGuestEmail] = useState("");
+  const [newGuestStartDate, setNewGuestStartDate] = useState("");
+  const [newGuestEndDate, setNewGuestEndDate] = useState("");
+  const [newGuestCategory, setNewGuestCategory] = useState("online");
+  const [newGuests, setNewGuests] = useState([]);
 
   const fetchSchedule = async () => {
     try {
@@ -38,9 +44,8 @@ const AllClasses = () => {
       let data = [];
 
       if (user?.role?.toLowerCase() === "admin") {
-  data = await getAllClasses();
-}
- else if (user?.role?.toLowerCase() === "trainer") {
+        data = await getAllClasses();
+      } else if (user?.role?.toLowerCase() === "trainer") {
         data = await getTrainerClasses(user?.TrainerId);
       }
 
@@ -64,7 +69,7 @@ const AllClasses = () => {
 
       setScheduleData(grouped);
       setBatchList(batches);
-    } catch (err) {
+    } catch {
       message.error("Failed to load schedule.");
     } finally {
       setLoading(false);
@@ -83,6 +88,7 @@ const AllClasses = () => {
 
   const handleEdit = (item) => {
     setEditData({ ...item });
+    setNewGuests([]);
     setDrawerOpen(true);
   };
 
@@ -90,13 +96,74 @@ const AllClasses = () => {
     setEditData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const saveChanges = () => {
-    message.success("Changes saved (not persisted — hook up update API).");
-    setDrawerOpen(false);
+  const updateTime = (field, value) => {
+    const existingDate = dayjs(editData[field]);
+    const [hours, minutes] = value.split(":").map(Number);
+    const updated = existingDate.hour(hours).minute(minutes).second(0).millisecond(0);
+    handleEditChange(field, updated.toISOString());
+  };
+
+  const handleAddNewGuest = async () => {
+  if (!newGuestEmail.trim()) return message.error("Enter email.");
+  if (!newGuestStartDate || !newGuestEndDate) return message.error("Choose both dates.");
+  if (dayjs(newGuestEndDate).isBefore(dayjs(newGuestStartDate)))
+    return message.error("End date can't be before start.");
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(newGuestEmail.trim())) return message.error("Invalid email.");
+
+  try {
+    const payload = {
+      name: newGuestEmail.trim(),
+      startDateOfGuest: newGuestStartDate,
+      endDateOfGuest: newGuestEndDate,
+      classId: editData._id, // ✅ required
+      TrainerID: editData.TrainerID, // ✅ optional — only if backend uses it
+      studentCategory: newGuestCategory, // ✅ optional
+    };
+    const res = await addGuestToClass(payload);
+    message.success(res.message || "Guest added.");
+
+    setNewGuests((prev) => [
+      ...prev,
+      {
+        email: newGuestEmail.trim(),
+        startDate: newGuestStartDate,
+        endDate: newGuestEndDate,
+        studentCategory: newGuestCategory,
+      },
+    ]);
+
+    setNewGuestEmail("");
+    setNewGuestStartDate("");
+    setNewGuestEndDate("");
+  } catch (err) {
+    const msg = err?.response?.data?.message || "Failed to add guest.";
+    message.error(msg);
+  }
+};
+
+
+  const saveChanges = async () => {
+    try {
+      const guestsFromOld = editData.addGuest || [];
+      const guestsFromNew = newGuests.map((g) => g.email);
+      const allGuests = [...new Set([...guestsFromOld, ...guestsFromNew])];
+
+      const updatedData = {
+        ...editData,
+        addGuest: allGuests,
+      };
+
+      message.success("Changes saved.");
+      setDrawerOpen(false);
+      await fetchSchedule();
+    } catch {
+      message.error("Failed to save changes.");
+    }
   };
 
   const uniqueBatches = ["All", ...batchList];
-
   const displayedSchedules =
     selectedBatch === "All"
       ? Object.entries(scheduleData).flatMap(([batchName, items]) =>
@@ -106,28 +173,28 @@ const AllClasses = () => {
 
   return (
     <div className="mt-10 px-4">
-      {/* Filter tabs */}
+      {/* Filter */}
       <div className="flex overflow-x-auto space-x-4 pb-4 border-b border-gray-300 mb-6 scrollbar-hide">
-        {uniqueBatches.map((batchname) => (
+        {uniqueBatches.map((batch) => (
           <button
-            key={batchname}
-            onClick={() => setSelectedBatch(batchname)}
+            key={batch}
+            onClick={() => setSelectedBatch(batch)}
             className={`whitespace-nowrap px-4 py-2 rounded-full transition text-sm font-medium border ${
-              selectedBatch === batchname
+              selectedBatch === batch
                 ? "bg-blue-600 text-white border-blue-600"
                 : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100"
             }`}
           >
-            {batchname}
+            {batch}
           </button>
         ))}
       </div>
 
-      {/* Class List */}
+      {/* Class cards */}
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
       ) : (
-        <div className="max-h-[270px] overflow-y-scroll pr-2">
+        <div className="max-h-[270px] overflow-y-auto pr-2 scrollbar-hide">
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedBatch}
@@ -152,12 +219,10 @@ const AllClasses = () => {
                       )}
                     </div>
                   </div>
-
                   <div className="text-xs flex justify-between mb-2 text-gray-700">
                     <span>Time:</span>
                     <span>{sched.time}</span>
                   </div>
-
                   <div className="flex justify-end gap-2 mt-2">
                     <button
                       onClick={() => handleEdit(sched)}
@@ -184,86 +249,56 @@ const AllClasses = () => {
         title="Edit Class"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        width={500}
+        width={520}
         closeIcon={<X className="text-gray-600 hover:text-red-500" />}
-        footer={
-          <div className="flex justify-end">
-            <button
-              onClick={saveChanges}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Save Changes
-            </button>
-          </div>
-        }
       >
         {editData && (
-          <div className="space-y-4">
-            <LabelInputContainer>
-              <Label>Meeting Title</Label>
-              <Input
-                value={editData.meetingTitle}
-                onChange={(e) => handleEditChange("meetingTitle", e.target.value)}
-              />
-            </LabelInputContainer>
-
-            <LabelInputContainer>
-              <Label>Trainer</Label>
-              <Input
-                value={editData.nameOfTrainer}
-                onChange={(e) => handleEditChange("nameOfTrainer", e.target.value)}
-              />
-            </LabelInputContainer>
-
-            <LabelInputContainer>
-              <Label>Technology</Label>
-              <Input
-                value={editData.technology}
-                onChange={(e) => handleEditChange("technology", e.target.value)}
-              />
-            </LabelInputContainer>
-
-            <LabelInputContainer>
-              <Label>Meeting Link</Label>
-              <Input
-                value={editData.meetingLink}
-                onChange={(e) => handleEditChange("meetingLink", e.target.value)}
-              />
-            </LabelInputContainer>
-
+          <div className="space-y-6">
+            <LabelInputContainer><Label>Meeting Title</Label><Input value={editData.meetingTitle} onChange={(e) => handleEditChange("meetingTitle", e.target.value)} /></LabelInputContainer>
+            <LabelInputContainer><Label>Trainer</Label><Input value={editData.nameOfTrainer} onChange={(e) => handleEditChange("nameOfTrainer", e.target.value)} /></LabelInputContainer>
+            <LabelInputContainer><Label>Technology</Label><Input value={editData.technology} onChange={(e) => handleEditChange("technology", e.target.value)} /></LabelInputContainer>
+            <LabelInputContainer><Label>Meeting Link</Label><Input value={editData.meetingLink} onChange={(e) => handleEditChange("meetingLink", e.target.value)} /></LabelInputContainer>
             <div className="grid grid-cols-2 gap-4">
-              <LabelInputContainer>
-                <Label>Start Time</Label>
-                <Input
-                  type="time"
-                  value={dayjs(editData.startingTime).format("HH:mm")}
-                  onChange={(e) =>
-                    handleEditChange("startingTime", dayjs(e.target.value, "HH:mm").toISOString())
-                  }
-                />
-              </LabelInputContainer>
-
-              <LabelInputContainer>
-                <Label>End Time</Label>
-                <Input
-                  type="time"
-                  value={dayjs(editData.endingTime).format("HH:mm")}
-                  onChange={(e) =>
-                    handleEditChange("endingTime", dayjs(e.target.value, "HH:mm").toISOString())
-                  }
-                />
-              </LabelInputContainer>
+              <LabelInputContainer><Label>Start Time</Label><Input type="time" value={dayjs(editData.startingTime).format("HH:mm")} onChange={(e) => updateTime("startingTime", e.target.value)} /></LabelInputContainer>
+              <LabelInputContainer><Label>End Time</Label><Input type="time" value={dayjs(editData.endingTime).format("HH:mm")} onChange={(e) => updateTime("endingTime", e.target.value)} /></LabelInputContainer>
             </div>
 
-            <LabelInputContainer>
-              <Label>Guest Emails (comma separated)</Label>
-              <Input
-                value={editData.addGuest?.join(", ")}
-                onChange={(e) =>
-                  handleEditChange("addGuest", e.target.value.split(",").map((g) => g.trim()))
-                }
-              />
-            </LabelInputContainer>
+            {/* Guest Emails */}
+            <div className="space-y-2">
+              <Label>Guest Emails</Label>
+              <div className="flex flex-wrap gap-2">
+                {(editData.addGuest || []).filter(email => !newGuests.some(g => g.email === email)).map((email, idx) => (
+                  <div key={idx} className="flex items-center bg-gray-300 text-gray-800 rounded-full px-3 py-1 text-sm font-medium">
+                    <span>{email}</span>
+                    <button onClick={() => handleEditChange("addGuest", (editData.addGuest || []).filter((e) => e !== email))} className="ml-2">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Add Guest */}
+            <div className="border rounded p-4 mt-6">
+              <h4 className="font-semibold mb-3">Add New Guest</h4>
+              <div className="grid grid-cols-3 gap-4 mb-3">
+                <LabelInputContainer><Label>Email</Label><Input value={newGuestEmail} onChange={(e) => setNewGuestEmail(e.target.value)} /></LabelInputContainer>
+                <LabelInputContainer><Label>Start Date</Label><Input type="date" value={newGuestStartDate} onChange={(e) => setNewGuestStartDate(e.target.value)} /></LabelInputContainer>
+                <LabelInputContainer><Label>End Date</Label><Input type="date" value={newGuestEndDate} onChange={(e) => setNewGuestEndDate(e.target.value)} /></LabelInputContainer>
+              </div>
+              <button onClick={handleAddNewGuest} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Guest</button>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {newGuests.map(({ email, startDate, endDate }, idx) => (
+                  <div key={idx} className="flex items-center bg-blue-200 text-blue-900 rounded-full px-3 py-1 text-sm font-medium">
+                    <span>{email} — {dayjs(startDate).format("DD MMM")} to {dayjs(endDate).format("DD MMM")}</span>
+                    <button onClick={() => setNewGuests((prev) => prev.filter((_, i) => i !== idx))} className="ml-2">×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4 border-t">
+              <button onClick={saveChanges} className="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700">Save Changes</button>
+            </div>
           </div>
         )}
       </Drawer>
@@ -275,24 +310,17 @@ const AllClasses = () => {
         onCancel={() => setDeleteModalOpen(false)}
         onOk={async () => {
           try {
-            const itemToDelete = scheduleData[deleteBatch]?.[deleteIndex];
-            const meetingLink = itemToDelete?.meetingLink;
-            if (!meetingLink) throw new Error("Invalid meeting link");
-
-            await deleteClassByMeetingLink(meetingLink);
+            const item = scheduleData[deleteBatch]?.[deleteIndex];
+            await deleteClassByMeetingLink(item?.meetingLink);
             const updated = { ...scheduleData };
             updated[deleteBatch] = updated[deleteBatch].filter((_, i) => i !== deleteIndex);
-            if (updated[deleteBatch].length === 0) delete updated[deleteBatch];
-
+            if (!updated[deleteBatch].length) delete updated[deleteBatch];
             setScheduleData(updated);
-            message.success("Schedule deleted successfully.");
-          } catch (error) {
-            console.error("Delete failed:", error);
-            message.error("Failed to delete schedule.");
+            message.success("Deleted");
+          } catch {
+            message.error("Delete failed");
           } finally {
             setDeleteModalOpen(false);
-            setDeleteBatch("");
-            setDeleteIndex(null);
           }
         }}
         okText="Yes, Delete"
@@ -300,9 +328,7 @@ const AllClasses = () => {
         okButtonProps={{ danger: true }}
         centered
       >
-        <p>
-          Are you sure you want to delete this schedule from <strong>{deleteBatch}</strong>?
-        </p>
+        <p>Are you sure you want to delete this schedule from <strong>{deleteBatch}</strong>?</p>
       </Modal>
     </div>
   );
