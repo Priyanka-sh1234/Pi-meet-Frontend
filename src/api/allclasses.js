@@ -2,7 +2,7 @@ import axiosInstance from "../../axiosinstance";
 
 export const getAllClasses = async () => {
   const response = await axiosInstance.get("/Classes/GetAllClasses");
-  return response.data.classes; // ✅ matches backend response structure
+  return response.data.classes; 
 };
 
 export const getTrainerClasses = async (trainerId) => {
