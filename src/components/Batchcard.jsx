@@ -1,55 +1,73 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import image from "../assets/boy.png";
+import { getAllClasses } from "../api/allclasses"; // Adjust path if needed
 
 export function Batchcard() {
   const [selectedBatch, setSelectedBatch] = useState(null);
+  const [batchData, setBatchData] = useState([]);
+  const [scheduleData, setScheduleData] = useState({});
 
-  const batch = [
-    { name: "Amrit pal Singh", batchname: "Mern Stack" },
-    { name: "Komalpreet Singh", batchname: "Python" },
-    { name: "Aman Badyal", batchname: "Java" },
-    { name: "Rahul", batchname: "Data Analytics" },
-    { name: "Sujal", batchname: "Graphic Designing" },
-    { name: "Roshan", batchname: "Digital Marketing" },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const classes = await getAllClasses();
 
-  const scheduleData = {
-    "Mern Stack": [
-      { name: "Mern Stack", time: "9Am - 11Am", process: "Done" },
-      { name: "Mern Stack", time: "11Am - 1Pm", process: "ongoing" },
-      { name: "Mern Stack", time: "2Pm - 4Pm", process: "schedule" },
-    ],
-    Python: [
-      { name: "Python", time: "10Am - 12Pm", process: "done" },
-      { name: "Python", time: "1Pm - 3Pm", process: "schedule" },
-    ],
-    Java: [{ name: "Java", time: "8Am - 10Am", process: "ongoing" }],
-    "Data Analytics": [
-      { name: "Data Analytics", time: "3Pm - 5Pm", process: "schedule" },
-    ],
-    "Graphic Designing": [
-      { name: "Graphic Designing", time: "11Am - 1Pm", process: "ongoing" },
-    ],
-    "Digital Marketing": [
-      { name: "Digital Marketing", time: "12Pm - 2Pm", process: "schedule" },
-    ],
-  };
+        const grouped = {};
+        const trainers = {};
+        classes.forEach((cls) => {
+          const batch = cls.technology;
+          const trainer = cls.nameOfTrainer;
+
+          if (!grouped[batch]) grouped[batch] = [];
+
+          const startTime = new Date(cls.startingTime);
+          const endTime = new Date(cls.endingTime);
+
+          const timeSlot = `${startTime.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })} - ${endTime.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}`;
+
+          grouped[batch].push({
+            name: batch,
+            time: timeSlot,
+            process: "schedule", // or infer logic based on time if needed
+          });
+
+          trainers[batch] = trainer; // Store trainer per batch
+        });
+
+        const uniqueTrainerBatches = Object.keys(grouped).map((batch) => ({
+          name: trainers[batch],
+          batchname: batch,
+        }));
+
+        setScheduleData(grouped);
+        setBatchData(uniqueTrainerBatches);
+      } catch (error) {
+        console.error("Error fetching classes:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const toggleBatch = (batchname) => {
     setSelectedBatch((prev) => (prev === batchname ? null : batchname));
   };
 
   return (
-    <div className="max-h-[70vh] overflow-y-auto mt-20 py-4"
-    style={{
-    scrollbarWidth: "none",       // Firefox
-    msOverflowStyle: "none",      // IE/Edge
-  }}>
-
+    <div
+      className="max-h-[70vh] overflow-y-auto mt-20 py-4"
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+    >
       <div className="flex flex-wrap justify-center gap-6 px-3 ">
-        {batch.map((item, index) => (
+        {batchData.map((item, index) => (
           <div
             key={index}
             className="flex flex-col w-full sm:w-[calc(50%-0.75rem)] bg-white rounded-xl border border-gray-200 shadow-md transition hover:scale-[1.02] overflow-hidden"
@@ -73,7 +91,7 @@ export function Batchcard() {
               </div>
             </div>
 
-            {/* Expandable Schedule Section */}
+            {/* Expandable Schedule */}
             <AnimatePresence initial={false}>
               {selectedBatch === item.batchname && (
                 <motion.div

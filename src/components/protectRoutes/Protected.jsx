@@ -1,9 +1,14 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAtomValue } from 'jotai';
+import { secretKeyAtom, roleAtom } from '../../store/atoms';
 
-export default function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const token = useAtomValue(secretKeyAtom);
+  const role = useAtomValue(roleAtom);
 
-  return isAuthenticated ? children : <Navigate to="/" />;
+  if (!token) return <Navigate to="/" />;
+  if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/unauthorized" />;
+
+  return children;
 }
