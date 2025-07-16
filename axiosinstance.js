@@ -1,7 +1,12 @@
 import axios from 'axios';
 
-const getSecretKey = () => localStorage.getItem('secretKey');
-const getRole = () => localStorage.getItem('role');
+let currentToken = '';
+let currentRole = '';
+
+export const setAuthHeader = (token, role) => {
+  currentToken = token;
+  currentRole = role;
+};
 
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:5050/api',
@@ -11,12 +16,8 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = getSecretKey();
-  const role = getRole();
-
-  if (token) config.headers['Authorization'] = `Bearer ${token}`;
-  if (role) config.headers['X-User-Role'] = role;
-
+  if (currentToken) config.headers['Authorization'] = `Bearer ${currentToken}`;
+  if (currentRole) config.headers['X-User-Role'] = currentRole;
   return config;
 });
 

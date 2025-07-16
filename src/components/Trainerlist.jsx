@@ -1,25 +1,24 @@
-import React, { useEffect, useState } from 'react';
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   Table, Tag, Space, Button, Modal, message, Drawer, Select
-} from 'antd';
+} from "antd";
 import {
   EditOutlined, DeleteOutlined, CheckCircleOutlined, CloseCircleOutlined
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 import {
-  addTrainer, getAllTrainers, deleteTrainer, updateTrainer
-} from '../api/trainerApi';
-import { Label } from './ui/label';
-import { Input as CustomInput } from './ui/input';
-import { cn } from './lib/utils';
+  addTrainer, getAllTrainers, deleteTrainer, updateTrainer, changeTrainerStatus
+} from "../api/trainerApi";
+import { Label } from "./ui/label";
+import { Input as CustomInput } from "./ui/input";
+import { cn } from "./lib/utils";
 
 const batchOptions = [
-  'Batch 9-11', 'Batch 11-1', 'Batch 2-4', 'Batch 4-6', 'Batch offline'
+  "Batch 9-11", "Batch 11-1", "Batch 2-4", "Batch 4-6", "Batch offline"
 ];
 
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>
-    {children}
-  </div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
 );
 
 const BottomGradient = () => (
@@ -111,11 +110,10 @@ const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }
 const TrainerList = () => {
   const [trainers, setTrainers] = useState([]);
   const [formData, setFormData] = useState({
-    name: '', email: '', TrainerId: '', technology: '', mobile: '', role: 'Trainer', batch: [],
+    name: "", email: "", TrainerId: "", technology: "", mobile: "", role: "Trainer", batch: [],
   });
-
-  const [search, setSearch] = useState('');
-  const [view, setView] = useState('active');
+  const [search, setSearch] = useState("");
+  const [view, setView] = useState("active");
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -124,24 +122,26 @@ const TrainerList = () => {
   const fetchTrainers = async () => {
     try {
       const res = await getAllTrainers();
-      const all = res.trainers || [];
-
-      const normalized = all.map(t => ({
+      const normalized = res.trainers.map(t => ({
         ...t,
-        status: t.PassChangeStatus?.toLowerCase() === 'inactive' ? 'Inactive' : 'Active',
+        status: t.PassChangeStatus?.toLowerCase() === "inactive" ? "Inactive" : "Active",
         batch: t.batch || [],
       }));
-
       setTrainers(normalized);
     } catch (err) {
-      console.error('Error fetching trainers:', err);
-      setTrainers([]);
+      message.error("Failed to load trainers");
     }
   };
 
   useEffect(() => {
     fetchTrainers();
   }, []);
+
+  const clearForm = () => {
+    setFormData({
+      name: "", email: "", TrainerId: "", technology: "", mobile: "", role: "Trainer", batch: [],
+    });
+  };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -156,22 +156,23 @@ const TrainerList = () => {
     e.preventDefault();
     try {
       await addTrainer(formData);
-      message.success('Trainer added');
+      message.success("Trainer added");
       setAddModalOpen(false);
+      clearForm();
       fetchTrainers();
     } catch (err) {
-      message.error('Error adding trainer');
+      message.error("Error adding trainer");
     }
   };
 
   const handleEdit = (record) => {
     setFormData({
       name: record.name,
-      email: record.email || '',
-      TrainerId: record.TrainerId || '',
-      technology: record.technology || '',
-      mobile: record.mobile || '',
-      role: record.role || 'Trainer',
+      email: record.email || "",
+      TrainerId: record.TrainerId || "",
+      technology: record.technology || "",
+      mobile: record.mobile || "",
+      role: record.role || "Trainer",
       batch: record.batch || [],
     });
     setSelectedTrainer(record);
@@ -181,23 +182,35 @@ const TrainerList = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateTrainer(selectedTrainer._id, formData);
-      message.success('Trainer updated');
+      // ✅ Fixed: use TrainerId instead of _id
+      await updateTrainer(selectedTrainer.TrainerId, formData);
+      message.success("Trainer updated");
       setEditDrawerOpen(false);
+      clearForm();
       fetchTrainers();
     } catch (err) {
-      message.error('Error updating trainer');
+      message.error("Error updating trainer");
     }
   };
 
   const handleDelete = async () => {
     try {
       await deleteTrainer(selectedTrainer.TrainerId);
-      message.success('Trainer deleted');
+      message.success("Trainer deleted");
       setDeleteModalOpen(false);
       fetchTrainers();
     } catch (err) {
-      message.error('Error deleting trainer');
+      message.error("Error deleting trainer");
+    }
+  };
+
+  const handleToggleStatus = async (record, newStatus) => {
+    try {
+      await changeTrainerStatus(record.TrainerId, newStatus);
+      message.success(`${record.name} marked as ${newStatus}`);
+      fetchTrainers();
+    } catch (err) {
+      message.error("Failed to change status");
     }
   };
 
@@ -207,40 +220,52 @@ const TrainerList = () => {
   );
 
   const columns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Role', dataIndex: 'role', key: 'role' },
-    { title: 'Trainer ID', dataIndex: 'TrainerId', key: 'TrainerId' },
-    { title: 'Technology', dataIndex: 'technology', key: 'technology' },
+    { title: "Name", dataIndex: "name", key: "name" },
+    { title: "Role", dataIndex: "role", key: "role" },
+    { title: "Trainer ID", dataIndex: "TrainerId", key: "TrainerId" },
+    { title: "Technology", dataIndex: "technology", key: "technology" },
     {
-      title: 'Batches',
-      dataIndex: 'batch',
-      key: 'batch',
-      render: (b) => b?.length > 0 ? b.join(', ') : '—'
+      title: "Batches",
+      dataIndex: "batch",
+      key: "batch",
+      render: (b) => b?.length > 0 ? b.join(", ") : "—"
     },
     {
-      title: 'Status', dataIndex: 'status', key: 'status', render: (status) => (
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
         <Tag
-          icon={status === 'Active' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-          color={status === 'Active' ? 'green' : 'volcano'}
+          icon={status === "Active" ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+          color={status === "Active" ? "green" : "volcano"}
         >
           {status}
         </Tag>
       )
     },
     {
-      title: 'Actions',
-      key: 'actions',
+      title: "Actions",
+      key: "actions",
       render: (_, record) => (
         <Space>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => {
-              setSelectedTrainer(record);
-              setDeleteModalOpen(true);
-            }}
-          />
+          {record.status === "Active" ? (
+            <Button danger onClick={() => handleToggleStatus(record, "inactive")}>
+            Inactive
+            </Button>
+          ) : (
+            <>
+              <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => {
+                  setSelectedTrainer(record);
+                  setDeleteModalOpen(true);
+                }}
+              />
+              
+            </>
+          )}
         </Space>
       )
     }
@@ -250,8 +275,8 @@ const TrainerList = () => {
     <div className="bg-white dark:bg-black text-black dark:text-white rounded-lg p-4">
       <div className="flex justify-between mb-4 flex-wrap gap-3">
         <div className="flex gap-2">
-          <button onClick={() => setView('active')} className={`px-4 py-2 rounded ${view === 'active' ? 'bg-gray-900 text-white' : 'border'}`}>Active</button>
-          <button onClick={() => setView('inactive')} className={`px-4 py-2 rounded ${view === 'inactive' ? 'bg-gray-900 text-white' : 'border'}`}>Inactive</button>
+          <button onClick={() => setView("active")} className={`px-4 py-2 rounded ${view === "active" ? "bg-gray-900 text-white" : "border"}`}>Active</button>
+          <button onClick={() => setView("inactive")} className={`px-4 py-2 rounded ${view === "inactive" ? "bg-gray-900 text-white" : "border"}`}>Inactive</button>
         </div>
         <input
           placeholder="Search trainer..."
@@ -259,7 +284,10 @@ const TrainerList = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="px-3 py-2 border rounded"
         />
-        <button onClick={() => setAddModalOpen(true)} className="bg-gray-900 text-white rounded px-4 py-2">
+        <button onClick={() => {
+          clearForm();
+          setAddModalOpen(true);
+        }} className="bg-gray-900 text-white rounded px-4 py-2">
           Add Trainer
         </button>
       </div>

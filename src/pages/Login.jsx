@@ -9,6 +9,7 @@ import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { cn } from '../components/lib/utils';
 import { BackgroundLines } from '../components/ui/BackgroundLines';
+import { setAuthHeader } from '../../axiosinstance'; // ✅ import this
 
 export default function AdminLogin() {
   const [id, setId] = useState('');
@@ -32,19 +33,21 @@ export default function AdminLogin() {
 
     try {
       const data = await loginUser(id, password);
-      console.log("Login success:", data);
 
-      // Store in Jotai atoms
       setSecret(data.token);
       setRole(data.user.role);
       setUser(data.user);
 
-      // Store in localStorage (optional)
-      localStorage.setItem('secretKey', data.token);
-      localStorage.setItem('role', data.user.role);
+      // ✅ Set headers globally for axios requests
+      setAuthHeader(data.token, data.user.role);
 
       message.success(data.message || 'Login successful!');
-      navigate("/AdminDashboard");
+
+      // Redirect based on role
+      const role = data.user.role.toLowerCase();
+      if (role === 'admin') navigate('/AdminDashboard');
+      else if (role === 'trainer') navigate('/Trainer-dashboard');
+      else navigate('/');
     } catch (err) {
       const msg = err?.response?.data?.message || "Invalid credentials.";
       message.error(msg);
@@ -114,9 +117,7 @@ export default function AdminLogin() {
 }
 
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>
-    {children}
-  </div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
 );
 
 const BottomGradient = () => (

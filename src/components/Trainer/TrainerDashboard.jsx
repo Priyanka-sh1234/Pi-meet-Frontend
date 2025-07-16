@@ -1,5 +1,5 @@
 import React from 'react'
-import { Infocard } from '../Infocard'
+import  Infocard  from '../Infocard'
 import Batches from '../Batches'
 import { Button } from 'antd'
 

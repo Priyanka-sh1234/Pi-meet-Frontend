@@ -1,6 +1,6 @@
 import React from 'react'
 import Batches from '../Batches'
-import { Infocard } from '../Infocard'
+import  Infocard  from '../Infocard'
 import { Batchcard } from '../Batchcard'
 
 const AdminDashboard = () => {

@@ -1,30 +1,17 @@
-import React, { useState } from 'react';
-import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from '@ant-design/icons';
-import { Layout, Menu, Button } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../components/protectRoutes/AuthContext';
-
-import TrainerDashboard from '../components/Trainer/TrainerDashboard';
+// Dashboard.jsx
+import React from 'react';
+import { useAtomValue } from 'jotai';
+import { roleAtom } from '../store/atoms';
 import AdminDashboard from '../components/Admin/AdminDashboard';
-
-const { Header, Content, Footer, Sider } = Layout;
+import TrainerDashboard from '../components/Trainer/TrainerDashboard';
 
 const Dashboard = () => {
-   const [role, setRole] = useState("trainer"); 
-  return (
-        <>
-        {role === "admin" && <AdminDashboard />}
-      {role === "trainer" && <TrainerDashboard />}
+  const role = useAtomValue(roleAtom)?.toLowerCase(); // already lowercase
 
-    </>
-  );
+  if (role === 'admin') return <AdminDashboard />;
+  if (role === 'trainer') return <TrainerDashboard />;
+
+  return <div>Invalid role. Please login again.</div>;
 };
 
 export default Dashboard;

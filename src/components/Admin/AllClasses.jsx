@@ -1,13 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import { Drawer, Modal, message } from "antd";
 import image from "../../assets/boy.png";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { cn } from "../lib/utils";
-import { getAllClasses } from "../../api/allclasses";
+import {
+  getAllClasses,
+  deleteClassByMeetingLink,
+  getTrainerClasses,
+} from "../../api/allclasses";
+import { useAtomValue } from "jotai";
+import { userAtom } from "../../store/atoms";
 import dayjs from "dayjs";
 
 const LabelInputContainer = ({ children, className }) => (
@@ -15,6 +21,7 @@ const LabelInputContainer = ({ children, className }) => (
 );
 
 const AllClasses = () => {
+  const user = useAtomValue(userAtom);
   const [selectedBatch, setSelectedBatch] = useState("All");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editData, setEditData] = useState(null);
@@ -27,7 +34,16 @@ const AllClasses = () => {
 
   const fetchSchedule = async () => {
     try {
-      const data = await getAllClasses();
+      setLoading(true);
+      let data = [];
+
+      if (user?.role?.toLowerCase() === "admin") {
+  data = await getAllClasses();
+}
+ else if (user?.role?.toLowerCase() === "trainer") {
+        data = await getTrainerClasses(user?.TrainerId);
+      }
+
       const grouped = {};
       const batches = [];
 
@@ -56,8 +72,8 @@ const AllClasses = () => {
   };
 
   useEffect(() => {
-    fetchSchedule();
-  }, []);
+    if (user?.role) fetchSchedule();
+  }, [user]);
 
   const confirmDelete = (batchName, index) => {
     setDeleteBatch(batchName);
@@ -66,12 +82,17 @@ const AllClasses = () => {
   };
 
   const handleEdit = (item) => {
-    setEditData({
-      ...item,
-      guests: item.addGuest || [],
-      newGuestEmail: "",
-    });
+    setEditData({ ...item });
     setDrawerOpen(true);
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveChanges = () => {
+    message.success("Changes saved (not persisted — hook up update API).");
+    setDrawerOpen(false);
   };
 
   const uniqueBatches = ["All", ...batchList];
@@ -85,12 +106,8 @@ const AllClasses = () => {
 
   return (
     <div className="mt-10 px-4">
-      {/* Batch Selector */}
-      <div className="flex overflow-x-auto space-x-4 pb-4 border-b border-gray-300 mb-6 scrollbar-hide"
-       style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}>
+      {/* Filter tabs */}
+      <div className="flex overflow-x-auto space-x-4 pb-4 border-b border-gray-300 mb-6 scrollbar-hide">
         {uniqueBatches.map((batchname) => (
           <button
             key={batchname}
@@ -106,14 +123,11 @@ const AllClasses = () => {
         ))}
       </div>
 
+      {/* Class List */}
       {loading ? (
         <p className="text-center text-gray-500">Loading...</p>
       ) : (
-        <div className="max-h-[270px] overflow-y-scroll pr-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
-         style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}>
+        <div className="max-h-[270px] overflow-y-scroll pr-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={selectedBatch}
@@ -123,71 +137,43 @@ const AllClasses = () => {
               transition={{ duration: 0.3 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
             >
-              {displayedSchedules.map((sched, idx) => {
-                const process = sched.process?.toLowerCase();
-                const bgColor =
-                  process === "done"
-                    ? "bg-green-100"
-                    : process === "ongoing"
-                    ? "bg-blue-900"
-                    : "bg-blue-100";
-                const textColor =
-                  process === "done"
-                    ? "text-green-700"
-                    : process === "ongoing"
-                    ? "text-white"
-                    : "text-blue-700";
-
-                return (
-                  <div
-                    key={`${sched.name}-${sched.time}-${idx}`}
-                    className={`p-4 rounded-xl shadow-md hover:shadow-lg transition ${bgColor}`}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <img
-                        src={image}
-                        alt="Avatar"
-                        className="h-10 w-10 rounded-full border object-cover"
-                      />
-                      <div>
-                        <h3 className={`text-sm font-semibold ${textColor}`}>
-                          {sched.name}
-                        </h3>
-                        <p className={`text-xs ${textColor}`}>{sched.process}</p>
-                        {selectedBatch === "All" && (
-                          <p className="text-xs text-gray-500 italic">
-                            ({sched.batchName})
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className={`text-xs flex justify-between mb-2 ${process === "ongoing" ? "text-white" : "text-gray-700"}`}>
-                      <span>Time:</span>
-                      <span>{sched.time}</span>
-                    </div>
-
-                    <div className="flex justify-end gap-2 mt-2">
-                      <button
-                        onClick={() => handleEdit(sched)}
-                        className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 shadow"
-                        title="Edit"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      {selectedBatch !== "All" && (
-                        <button
-                          onClick={() => confirmDelete(selectedBatch, idx)}
-                          className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-700 shadow"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+              {displayedSchedules.map((sched, idx) => (
+                <div
+                  key={`${sched.name}-${sched.time}-${idx}`}
+                  className="p-4 rounded-xl shadow-md hover:shadow-lg transition bg-blue-100"
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <img src={image} alt="Avatar" className="h-10 w-10 rounded-full border object-cover" />
+                    <div>
+                      <h3 className="text-sm font-semibold text-blue-700">{sched.name}</h3>
+                      <p className="text-xs text-blue-700">{sched.process}</p>
+                      {selectedBatch === "All" && (
+                        <p className="text-xs text-gray-500 italic">({sched.batchName})</p>
                       )}
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="text-xs flex justify-between mb-2 text-gray-700">
+                    <span>Time:</span>
+                    <span>{sched.time}</span>
+                  </div>
+
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button
+                      onClick={() => handleEdit(sched)}
+                      className="p-2 rounded-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 shadow"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      onClick={() => confirmDelete(sched.batchName, idx)}
+                      className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-700 shadow"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -195,49 +181,119 @@ const AllClasses = () => {
 
       {/* Drawer */}
       <Drawer
-        title={<div className="text-xl font-semibold text-blue-300">✏️ Edit Schedule</div>}
-        placement="right"
-        width={600}
-        onClose={() => setDrawerOpen(false)}
+        title="Edit Class"
         open={drawerOpen}
-        closeIcon={<span className="text-white hover:text-red-400">✖</span>}
-        bodyStyle={{ padding: 24, backgroundColor: "#111827", backdropFilter: "blur(10px)" }}
+        onClose={() => setDrawerOpen(false)}
+        width={500}
+        closeIcon={<X className="text-gray-600 hover:text-red-500" />}
+        footer={
+          <div className="flex justify-end">
+            <button
+              onClick={saveChanges}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Save Changes
+            </button>
+          </div>
+        }
       >
         {editData && (
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+          <div className="space-y-4">
             <LabelInputContainer>
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" value={editData.name} readOnly disabled />
+              <Label>Meeting Title</Label>
+              <Input
+                value={editData.meetingTitle}
+                onChange={(e) => handleEditChange("meetingTitle", e.target.value)}
+              />
             </LabelInputContainer>
+
             <LabelInputContainer>
-              <Label htmlFor="status">Status</Label>
-              <Input id="status" value={editData.process} readOnly disabled />
+              <Label>Trainer</Label>
+              <Input
+                value={editData.nameOfTrainer}
+                onChange={(e) => handleEditChange("nameOfTrainer", e.target.value)}
+              />
             </LabelInputContainer>
-            <LabelInputContainer className="md:col-span-2">
-              <Label htmlFor="time">Time</Label>
-              <Input id="time" value={editData.time} readOnly disabled />
+
+            <LabelInputContainer>
+              <Label>Technology</Label>
+              <Input
+                value={editData.technology}
+                onChange={(e) => handleEditChange("technology", e.target.value)}
+              />
             </LabelInputContainer>
-          </form>
+
+            <LabelInputContainer>
+              <Label>Meeting Link</Label>
+              <Input
+                value={editData.meetingLink}
+                onChange={(e) => handleEditChange("meetingLink", e.target.value)}
+              />
+            </LabelInputContainer>
+
+            <div className="grid grid-cols-2 gap-4">
+              <LabelInputContainer>
+                <Label>Start Time</Label>
+                <Input
+                  type="time"
+                  value={dayjs(editData.startingTime).format("HH:mm")}
+                  onChange={(e) =>
+                    handleEditChange("startingTime", dayjs(e.target.value, "HH:mm").toISOString())
+                  }
+                />
+              </LabelInputContainer>
+
+              <LabelInputContainer>
+                <Label>End Time</Label>
+                <Input
+                  type="time"
+                  value={dayjs(editData.endingTime).format("HH:mm")}
+                  onChange={(e) =>
+                    handleEditChange("endingTime", dayjs(e.target.value, "HH:mm").toISOString())
+                  }
+                />
+              </LabelInputContainer>
+            </div>
+
+            <LabelInputContainer>
+              <Label>Guest Emails (comma separated)</Label>
+              <Input
+                value={editData.addGuest?.join(", ")}
+                onChange={(e) =>
+                  handleEditChange("addGuest", e.target.value.split(",").map((g) => g.trim()))
+                }
+              />
+            </LabelInputContainer>
+          </div>
         )}
       </Drawer>
 
-      {/* Modal */}
+      {/* Delete Modal */}
       <Modal
         title="Confirm Delete"
         open={deleteModalOpen}
-        onCancel={() => {
-          setDeleteModalOpen(false);
-          setDeleteBatch("");
-          setDeleteIndex(null);
-        }}
-        onOk={() => {
-          const updated = { ...scheduleData };
-          updated[deleteBatch] = updated[deleteBatch].filter((_, i) => i !== deleteIndex);
-          setScheduleData(updated);
-          setDeleteModalOpen(false);
-          setDeleteBatch("");
-          setDeleteIndex(null);
-          message.success("Schedule deleted");
+        onCancel={() => setDeleteModalOpen(false)}
+        onOk={async () => {
+          try {
+            const itemToDelete = scheduleData[deleteBatch]?.[deleteIndex];
+            const meetingLink = itemToDelete?.meetingLink;
+            if (!meetingLink) throw new Error("Invalid meeting link");
+
+            await deleteClassByMeetingLink(meetingLink);
+            const updated = { ...scheduleData };
+            updated[deleteBatch] = updated[deleteBatch].filter((_, i) => i !== deleteIndex);
+            if (updated[deleteBatch].length === 0) delete updated[deleteBatch];
+
+            setScheduleData(updated);
+            message.success("Schedule deleted successfully.");
+          } catch (error) {
+            console.error("Delete failed:", error);
+            message.error("Failed to delete schedule.");
+          } finally {
+            setDeleteModalOpen(false);
+            setDeleteBatch("");
+            setDeleteIndex(null);
+          }
         }}
         okText="Yes, Delete"
         cancelText="Cancel"
