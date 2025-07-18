@@ -1,24 +1,45 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import {
-  Table, Tag, Space, Button, Modal, message, Drawer, Select
+  Table,
+  Tag,
+  Space,
+  Button,
+  Modal,
+  message,
+  Drawer,
+  Select,
 } from "antd";
 import {
-  EditOutlined, DeleteOutlined, CheckCircleOutlined, CloseCircleOutlined
+  EditOutlined,
+  DeleteOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import {
-  addTrainer, getAllTrainers, deleteTrainer, updateTrainer, changeTrainerStatus
+  addTrainer,
+  getAllTrainers,
+  deleteTrainer,
+  updateTrainer,
+  changeTrainerStatus,
 } from "../api/trainerApi";
 import { Label } from "./ui/label";
 import { Input as CustomInput } from "./ui/input";
 import { cn } from "./lib/utils";
 
 const batchOptions = [
-  "Batch 9-11", "Batch 11-1", "Batch 2-4", "Batch 4-6", "Batch offline"
+  "Batch 9-11",
+  "Batch 11-1",
+  "Batch 2-4",
+  "Batch 4-6",
+  "Batch offline",
 ];
 
 const LabelInputContainer = ({ children, className }) => (
-  <div className={cn("flex w-full flex-col space-y-2", className)}>{children}</div>
+  <div className={cn("flex w-full flex-col space-y-2", className)}>
+    {children}
+  </div>
 );
 
 const BottomGradient = () => (
@@ -28,21 +49,45 @@ const BottomGradient = () => (
   </>
 );
 
-const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }) => (
-  <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+const TrainerForm = ({
+  formData,
+  handleChange,
+  handleBatchChange,
+  handleSubmit,
+}) => (
+  <form
+    onSubmit={handleSubmit}
+    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+  >
     <LabelInputContainer>
       <Label htmlFor="name">Full Name</Label>
-      <CustomInput id="name" value={formData.name} onChange={handleChange} placeholder="Name" />
+      <CustomInput
+        id="name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder="Name"
+      />
     </LabelInputContainer>
 
     <LabelInputContainer>
       <Label htmlFor="email">Email Address</Label>
-      <CustomInput id="email" value={formData.email} onChange={handleChange} placeholder="Email" type="email" />
+      <CustomInput
+        id="email"
+        value={formData.email}
+        onChange={handleChange}
+        placeholder="Email"
+        type="email"
+      />
     </LabelInputContainer>
 
     <LabelInputContainer>
       <Label htmlFor="TrainerId">Trainer ID</Label>
-      <CustomInput id="TrainerId" value={formData.TrainerId} onChange={handleChange} placeholder="Trainer ID" />
+      <CustomInput
+        id="TrainerId"
+        value={formData.TrainerId}
+        onChange={handleChange}
+        placeholder="Trainer ID"
+      />
     </LabelInputContainer>
 
     <LabelInputContainer>
@@ -64,7 +109,12 @@ const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }
 
     <LabelInputContainer>
       <Label htmlFor="mobile">Mobile</Label>
-      <CustomInput id="mobile" value={formData.mobile} onChange={handleChange} placeholder="Mobile" />
+      <CustomInput
+        id="mobile"
+        value={formData.mobile}
+        onChange={handleChange}
+        placeholder="Mobile"
+      />
     </LabelInputContainer>
 
     <LabelInputContainer>
@@ -91,7 +141,7 @@ const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }
         value={formData.batch}
         onChange={handleBatchChange}
         className="w-full"
-        options={batchOptions.map(batch => ({ label: batch, value: batch }))}
+        options={batchOptions.map((batch) => ({ label: batch, value: batch }))}
       />
     </LabelInputContainer>
 
@@ -110,7 +160,13 @@ const TrainerForm = ({ formData, handleChange, handleBatchChange, handleSubmit }
 const TrainerList = () => {
   const [trainers, setTrainers] = useState([]);
   const [formData, setFormData] = useState({
-    name: "", email: "", TrainerId: "", technology: "", mobile: "", role: "Trainer", batch: [],
+    name: "",
+    email: "",
+    TrainerId: "",
+    technology: "",
+    mobile: "",
+    role: "Trainer",
+    batch: [],
   });
   const [search, setSearch] = useState("");
   const [view, setView] = useState("active");
@@ -122,9 +178,9 @@ const TrainerList = () => {
   const fetchTrainers = async () => {
     try {
       const res = await getAllTrainers();
-      const normalized = res.trainers.map(t => ({
+      const normalized = res.trainers.map((t) => ({
         ...t,
-        status: t.PassChangeStatus?.toLowerCase() === "inactive" ? "Inactive" : "Active",
+        PassChangeStatus: t.PassChangeStatus?.toLowerCase() || "inactive",
         batch: t.batch || [],
       }));
       setTrainers(normalized);
@@ -139,17 +195,23 @@ const TrainerList = () => {
 
   const clearForm = () => {
     setFormData({
-      name: "", email: "", TrainerId: "", technology: "", mobile: "", role: "Trainer", batch: [],
+      name: "",
+      email: "",
+      TrainerId: "",
+      technology: "",
+      mobile: "",
+      role: "Trainer",
+      batch: [],
     });
   };
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleBatchChange = (value) => {
-    setFormData(prev => ({ ...prev, batch: value }));
+    setFormData((prev) => ({ ...prev, batch: value }));
   };
 
   const handleAddSubmit = async (e) => {
@@ -182,7 +244,6 @@ const TrainerList = () => {
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
-      // ✅ Fixed: use TrainerId instead of _id
       await updateTrainer(selectedTrainer.TrainerId, formData);
       message.success("Trainer updated");
       setEditDrawerOpen(false);
@@ -214,10 +275,10 @@ const TrainerList = () => {
     }
   };
 
-  const filteredData = trainers.filter(t =>
-    t.name?.toLowerCase().includes(search.toLowerCase()) &&
-    t.status?.toLowerCase() === view
-  );
+  const filteredData = trainers.filter((t) => {
+    const nameMatch = t.name?.toLowerCase().includes(search.toLowerCase());
+    return nameMatch && t.PassChangeStatus === view;
+  });
 
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
@@ -228,33 +289,53 @@ const TrainerList = () => {
       title: "Batches",
       dataIndex: "batch",
       key: "batch",
-      render: (b) => b?.length > 0 ? b.join(", ") : "—"
+      render: (b) => (b?.length > 0 ? b.join(", ") : "—"),
     },
     {
       title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag
-          icon={status === "Active" ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
-          color={status === "Active" ? "green" : "volcano"}
-        >
-          {status}
-        </Tag>
-      )
+      dataIndex: "PassChangeStatus",
+      key: "PassChangeStatus",
+      render: (_, record) => {
+        const status = record.PassChangeStatus;
+        let icon = <CloseCircleOutlined />;
+        let color = "volcano";
+        let label = "Inactive";
+
+        if (status === "active") {
+          icon = <CheckCircleOutlined />;
+          color = "green";
+          label = "Active";
+        } else if (status === "awaiting") {
+          icon = <ClockCircleOutlined />;
+          color = "gold";
+          label = "Awaiting";
+        }
+
+        return (
+          <Tag icon={icon} color={color}>
+            {label}
+          </Tag>
+        );
+      },
     },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
         <Space>
-          {record.status === "Active" ? (
-            <Button danger onClick={() => handleToggleStatus(record, "inactive")}>
-            Inactive
+          {record.PassChangeStatus === "active" ? (
+            <Button
+              danger
+              onClick={() => handleToggleStatus(record, "inactive")}
+            >
+              Inactive
             </Button>
           ) : (
             <>
-              <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+              <Button
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(record)}
+              />
               <Button
                 danger
                 icon={<DeleteOutlined />}
@@ -263,20 +344,41 @@ const TrainerList = () => {
                   setDeleteModalOpen(true);
                 }}
               />
-              
             </>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
-    <div className="bg-white dark:bg-black text-black dark:text-white rounded-lg p-4">
+    <div className="bg-white text-black rounded-lg p-4">
       <div className="flex justify-between mb-4 flex-wrap gap-3">
         <div className="flex gap-2">
-          <button onClick={() => setView("active")} className={`px-4 py-2 rounded ${view === "active" ? "bg-gray-900 text-white" : "border"}`}>Active</button>
-          <button onClick={() => setView("inactive")} className={`px-4 py-2 rounded ${view === "inactive" ? "bg-gray-900 text-white" : "border"}`}>Inactive</button>
+          <button
+            onClick={() => setView("active")}
+            className={`px-4 py-2 rounded ${
+              view === "active" ? "bg-gray-900 text-white" : "border"
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setView("inactive")}
+            className={`px-4 py-2 rounded ${
+              view === "inactive" ? "bg-gray-900 text-white" : "border"
+            }`}
+          >
+            Inactive
+          </button>
+          <button
+            onClick={() => setView("awaiting")}
+            className={`px-4 py-2 rounded ${
+              view === "awaiting" ? "bg-yellow-600 text-white" : "border"
+            }`}
+          >
+            Awaiting
+          </button>
         </div>
         <input
           placeholder="Search trainer..."
@@ -284,17 +386,31 @@ const TrainerList = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="px-3 py-2 border rounded"
         />
-        <button onClick={() => {
-          clearForm();
-          setAddModalOpen(true);
-        }} className="bg-gray-900 text-white rounded px-4 py-2">
+        <button
+          onClick={() => {
+            clearForm();
+            setAddModalOpen(true);
+          }}
+          className="bg-gray-900 text-white rounded px-4 py-2"
+        >
           Add Trainer
         </button>
       </div>
 
-      <Table columns={columns} dataSource={filteredData} rowKey="_id" pagination={{ pageSize: 5 }} />
+      <Table
+        columns={columns}
+        dataSource={filteredData}
+        rowKey="_id"
+        pagination={{ pageSize: 5 }}
+      />
 
-      <Modal title="Add Trainer" open={addModalOpen} onCancel={() => setAddModalOpen(false)} footer={null} width={650}>
+      <Modal
+        title="Add Trainer"
+        open={addModalOpen}
+        onCancel={() => setAddModalOpen(false)}
+        footer={null}
+        width={650}
+      >
         <TrainerForm
           formData={formData}
           handleChange={handleChange}

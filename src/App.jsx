@@ -9,6 +9,7 @@ import AllClasses from './components/Admin/AllClasses';
 import AddTrainer from './components/Admin/AddTrainer';
 import TrainerDashboard from './components/Trainer/TrainerDashboard';
 import ResetPassword from './components/ResetPassword';
+import AdminDashboard from './components/Admin/AdminDashboard';
 
 export default function App() {
   return (
@@ -22,9 +23,10 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="AdminDashboard" element={<Dashboard />} />
+        <Route path="Dashboard" element={<Dashboard />} />
         <Route path="all-classes" element={<AllClasses />} />
         <Route path="add-trainer" element={<AddTrainer />} />
+        <Route path="Admin-dashboard" element={<AdminDashboard />} />
         <Route path="Trainer-dashboard" element={<TrainerDashboard />} />
       </Route>
       <Route path="Trainer/reset" element={<ResetPassword />} />
