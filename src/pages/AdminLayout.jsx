@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   DesktopOutlined,
   PieChartOutlined,
@@ -7,20 +7,13 @@ import {
   LogoutOutlined,
   DownOutlined,
   ReloadOutlined,
-} from '@ant-design/icons';
-import {
-  Layout,
-  Menu,
-  Breadcrumb,
-  Dropdown,
-  Avatar,
-  Divider,
-} from 'antd';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useSetAtom } from 'jotai';
-import { secretKeyAtom, roleAtom, userAtom } from '../store/atoms';
-import notification from '../assets/notification.png';
-import image from '../assets/boy.png';
+} from "@ant-design/icons";
+import { Layout, Menu, Breadcrumb, Dropdown, Avatar, Divider } from "antd";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useSetAtom, useAtomValue } from "jotai";
+import { secretKeyAtom, roleAtom, userAtom } from "../store/atoms";
+import notification from "../assets/notification.png";
+import image from "../assets/boy.png";
 
 const { Header, Content, Sider } = Layout;
 
@@ -32,14 +25,15 @@ const AdminLayout = () => {
   const setSecret = useSetAtom(secretKeyAtom);
   const setRole = useSetAtom(roleAtom);
   const setUser = useSetAtom(userAtom);
+  const role = useAtomValue(roleAtom); // 👈 Get role value
 
-  const userName = 'Aman Badyal';
+  const userName = "Aman Badyal";
 
   const handleLogout = () => {
-    setSecret('');
-    setRole('');
+    setSecret("");
+    setRole("");
     setUser(null);
-    navigate('/');
+    navigate("/");
   };
 
   const handleMenuClick = ({ key }) => {
@@ -52,11 +46,11 @@ const AdminLayout = () => {
         <div className="items-center text-center gap-3 px-2 py-1">
           <Avatar size="large" src={image} icon={<UserOutlined />} />
           <div className="text-sm font-medium">{userName}</div>
-          <div>Admin</div>
+          <div>{role === "admin" ? "Admin" : "Trainer"}</div>
           <div>amritpalsingh87@gmail.com</div>
         </div>
       </Menu.Item>
-      <Divider style={{ margin: '4px 0' }} />
+      <Divider style={{ margin: "4px 0" }} />
       <Menu.Item key="reset" icon={<ReloadOutlined />}>
         Reset password
       </Menu.Item>
@@ -71,20 +65,28 @@ const AdminLayout = () => {
     </Menu>
   );
 
+  // ✅ Role-based sidebar items
   const menuItems = [
-    { key: '/AdminDashboard', icon: <PieChartOutlined />, label: 'Dashboard' },
-    { key: '/all-classes', icon: <DesktopOutlined />, label: 'All Classes' },
-    { key: '/add-trainer', icon: <TeamOutlined />, label: 'Add a trainer' },
+    { key: "/dashboard", icon: <PieChartOutlined />, label: "Dashboard" },
+    { key: "/all-classes", icon: <DesktopOutlined />, label: "All Classes" },
+    ...(role === "Admin"
+      ? [
+          {
+            key: "/add-trainer",
+            icon: <TeamOutlined />,
+            label: "Add a trainer",
+          },
+        ]
+      : []),
   ];
 
   const getBreadcrumbLabel = (path) => {
     const item = menuItems.find((item) => item.key === path);
-    return item ? item.label : 'Page';
+    return item ? item.label : "Page";
   };
 
   const currentPath = location.pathname;
   const breadcrumbLabel = getBreadcrumbLabel(currentPath);
-
   const siderWidth = collapsed ? 80 : 200;
 
   return (
@@ -96,8 +98,8 @@ const AdminLayout = () => {
         onCollapse={setCollapsed}
         width={200}
         style={{
-          position: 'fixed',
-          height: '100vh',
+          position: "fixed",
+          height: "100vh",
           left: 0,
           top: 0,
           zIndex: 100,
@@ -121,7 +123,7 @@ const AdminLayout = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={['/AdminDashboard']}
+          selectedKeys={[currentPath]}
           items={menuItems}
           onClick={handleMenuClick}
         />
@@ -131,7 +133,7 @@ const AdminLayout = () => {
       <Header
         className="px-6 flex justify-end items-center bg-white shadow-sm h-16"
         style={{
-          position: 'fixed',
+          position: "fixed",
           top: 0,
           left: siderWidth,
           right: 0,
@@ -145,42 +147,43 @@ const AdminLayout = () => {
           className="w-10 h-10 mr-5 hover:animate-pulse transition-all duration-300"
         />
 
-        <Dropdown overlay={userDropdownMenu} trigger={['click']}>
+        <Dropdown overlay={userDropdownMenu} trigger={["click"]}>
           <button className="text-neutral-200 px-3 py-4 rounded-md shadow-sm flex items-center gap-2">
             <Avatar size="small" src={image} icon={<UserOutlined />} />
-            <span className="hidden sm:inline text-sm font-medium">{userName}</span>
+            <span className="hidden sm:inline text-sm font-medium">
+              {userName}
+            </span>
             <DownOutlined className="text-xs" />
           </button>
         </Dropdown>
       </Header>
 
-      {/* ✅ Main Content area */}
-     <Content
-  style={{
-    marginLeft: collapsed ? 80 : 200,
-    marginTop: 64,
-    padding: '16px',
-    backgroundColor: '#f5f5f5',
-    height: 'calc(100vh - 64px)',
-    overflow: 'auto',
-  }}
->
-  <Breadcrumb className="mb-4 text-gray-600">
-    <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
-    <Breadcrumb.Item>{breadcrumbLabel}</Breadcrumb.Item>
-  </Breadcrumb>
+      {/* ✅ Main Content Area */}
+      <Content
+        style={{
+          marginLeft: siderWidth,
+          marginTop: 64,
+          padding: "16px",
+          backgroundColor: "#f5f5f5",
+          height: "calc(100vh - 64px)",
+          overflow: "auto",
+        }}
+      >
+        <Breadcrumb className="mb-4 text-gray-600">
+          <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
+          <Breadcrumb.Item>{breadcrumbLabel}</Breadcrumb.Item>
+        </Breadcrumb>
 
-  <div
-    className="bg-white rounded-lg shadow p-6"
-    style={{
-      height: '100%',
-      overflow: 'auto',
-    }}
-  >
-    <Outlet />
-  </div>
-</Content>
-
+        <div
+          className="bg-white rounded-lg shadow p-6"
+          style={{
+            height: "100%",
+            overflow: "auto",
+          }}
+        >
+          <Outlet />
+        </div>
+      </Content>
     </>
   );
 };

@@ -62,7 +62,9 @@ const Batches = () => {
                 ${processBgColor} text-gray-900
                 transition duration-200 transform hover:scale-102 hover:shadow-lg cursor-pointer`}
             >
-              <div className={`text-sm font-semibold mb-2 capitalize ${processTextColor}`}>
+              <div
+                className={`text-sm font-semibold mb-2 capitalize ${processTextColor}`}
+              >
                 {item.process || "Schedule"}
               </div>
 
@@ -83,7 +85,7 @@ const Batches = () => {
       {/* Button as link to open in new tab */}
       <div className="flex justify-center pr-5">
         <a
-          href="http://localhost:5174/new-meeting"
+          href="http://pimeet-video-chat.vercel.app/new-meeting"
           target="_blank"
           rel="noopener noreferrer"
         >

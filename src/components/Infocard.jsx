@@ -30,7 +30,6 @@ export default function Infocard() {
 
   return (
     <CardContainer className="w-full min-w-[250px] max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
-
       <CardBody
         className="relative group/card w-full rounded-xl border p-4 sm:p-6 
         bg-white dark:bg-gray-900 
